@@ -1,8 +1,9 @@
-package db
+package database
 
 import (
 	"fmt"
-	"os"
+
+	"chatapp/internal/domain/entity"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -17,14 +18,14 @@ type PostgresConfig struct {
 	SSLMode  string
 }
 
-func NewPostgresConfig() *PostgresConfig {
+func NewPostgresConfig(host, user, password, dbName, port, sslMode string) *PostgresConfig {
 	return &PostgresConfig{
-		Host:     os.Getenv("DB_HOST"),
-		User:     os.Getenv("DB_USER"),
-		Password: os.Getenv("DB_PASSWORD"),
-		DBName:   os.Getenv("DB_NAME"),
-		Port:     os.Getenv("DB_PORT"),
-		SSLMode:  os.Getenv("DB_SSLMODE"),
+		Host:     host,
+		User:     user,
+		Password: password,
+		DBName:   dbName,
+		Port:     port,
+		SSLMode:  sslMode,
 	}
 }
 
@@ -67,4 +68,10 @@ func (c *PostgresConfig) Validate() error {
 	}
 
 	return nil
+}
+
+func Migrate(db *gorm.DB) error {
+	return db.AutoMigrate(
+		&entity.User{},
+	)
 }

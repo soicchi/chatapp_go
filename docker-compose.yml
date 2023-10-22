@@ -14,6 +14,8 @@ services:
       - 3001:${APP_PORT}
     depends_on:
       - db
+    profiles:
+      - main
 
   db:
     image: postgres:16.0
@@ -28,6 +30,22 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - 5431:${DB_PORT}
+    profiles:
+      - main
+
+  test-db:
+    image: postgres:16.0
+    container_name: chatapp_test_db
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${TEST_DB_USER}
+      - POSTGRES_PASSWORD=${TEST_DB_PASSWORD}
+      - POSTGRES_DB=${TEST_DB_NAME}
+    ports:
+      - 5430:${TEST_DB_PORT}
+    profiles:
+      - test
 
 volumes:
   postgres_data:
