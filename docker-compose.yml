@@ -1,0 +1,32 @@
+version: "3.9"
+services:
+  app:
+    build:
+      context: .
+      target: dev
+    container_name: chatapp
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    ports:
+      - 3001:${APP_PORT}
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16.0
+    container_name: chatapp_db
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - 5431:${DB_PORT}
+
+volumes:
+  postgres_data:
