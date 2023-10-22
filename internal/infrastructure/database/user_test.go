@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"chatapp/internal/domain/entity"
+	helper "chatapp/tests"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -27,7 +28,7 @@ func TestCreate(t *testing.T) {
 			name: "error empty name",
 			input: &entity.User{
 				Name:     "",
-				Email:    "test@test.com",
+				Email:    "test2@test.com",
 				Password: "password",
 			},
 			wantErr: true,
@@ -45,7 +46,7 @@ func TestCreate(t *testing.T) {
 			name: "error duplicated email",
 			input: &entity.User{
 				Name:     "test",
-				Email:    "duplicate@test.com",
+				Email:    "initial@test.com",
 				Password: "password",
 			},
 			wantErr: true,
@@ -54,17 +55,17 @@ func TestCreate(t *testing.T) {
 			name: "error empty password",
 			input: &entity.User{
 				Name:     "test",
-				Email:    "test@test.com",
+				Email:    "test3@test.com",
 				Password: "",
 			},
 			wantErr: true,
 		},
 	}
 
-	tx := testDB.Begin()
-	defer tx.Rollback()
+	helper.CreateTestUser(testDB, "initial", "initial@test.com", "password")
 
 	for _, test := range tests {
+		tx := testDB.Begin()
 		t.Run(test.name, func(t *testing.T) {
 			repo := &UserRepository{DB: tx}
 			err := repo.Create(test.input)
@@ -78,6 +79,7 @@ func TestCreate(t *testing.T) {
 				assert.Equal(t, test.input.Name, user.Name)
 				assert.Equal(t, test.input.Email, user.Email)
 			}
+			tx.Rollback()
 		})
 	}
 }
