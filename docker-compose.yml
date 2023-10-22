@@ -3,6 +3,7 @@ services:
   app:
     build:
       context: .
+      dockerfile: Dockerfile
       target: dev
     container_name: chatapp
     env_file:
