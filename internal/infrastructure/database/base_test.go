@@ -39,6 +39,6 @@ func TestMain(m *testing.M) {
 	}()
 
 	// Run tests
-	m.Run()
-	os.Exit(m.Run())
+	exitCode := m.Run()
+	os.Exit(exitCode)
 }

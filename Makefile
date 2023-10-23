@@ -16,5 +16,6 @@ go_vet:
 	docker compose run --rm app go vet ${path}
 
 go_test:
-	docker compose up -d test-db
+	docker compose up -d test-db 
 	docker compose run --rm app go test -v -cover ${path}
+	docker compose down test-db 
