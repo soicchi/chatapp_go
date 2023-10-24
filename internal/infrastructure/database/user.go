@@ -20,13 +20,13 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 }
 
 // Create creates a new user
-func (r *UserRepository) Create(user *entity.User) error {
+func (r *UserRepository) Create(user *entity.User) (*entity.User, error) {
 	result := r.DB.Create(user)
 	if result.Error != nil {
-		return fmt.Errorf("failed to create user: %w", result.Error)
+		return nil, fmt.Errorf("failed to create user: %w", result.Error)
 	}
 
-	return nil
+	return user, nil
 }
 
 // FindByEmail finds a user by email

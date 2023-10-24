@@ -69,13 +69,11 @@ func TestCreate(t *testing.T) {
 
 		t.Run(test.name, func(t *testing.T) {
 			repo := &UserRepository{DB: tx}
-			err := repo.Create(test.input)
+			user, err := repo.Create(test.input)
 			if test.wantErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				var user entity.User
-				tx.Where("email = ?", test.input.Email).First(&user)
 				assert.NotZero(t, user.ID)
 				assert.Equal(t, test.input.Name, user.Name)
 				assert.Equal(t, test.input.Email, user.Email)
