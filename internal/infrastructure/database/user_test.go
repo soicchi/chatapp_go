@@ -130,17 +130,17 @@ func TestFindByEmail(t *testing.T) {
 
 func TestFindByID(t *testing.T) {
 	tests := []struct {
-		name string
+		name    string
 		inputID string
 		wantErr bool
 	}{
 		{
-			name: "success",
+			name:    "success",
 			inputID: "1",
 			wantErr: false,
 		},
 		{
-			name: "not found",
+			name:    "not found",
 			inputID: "999",
 			wantErr: false,
 		},
