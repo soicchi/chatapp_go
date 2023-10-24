@@ -43,6 +43,20 @@ func (r *UserRepository) FindByEmail(email string) (*entity.User, error) {
 	return &user, nil
 }
 
+// FindByID finds a user by ID
+func (r *UserRepository) FindByID(id string) (*entity.User, error) {
+	var user entity.User
+	err := r.DB.First(&user, id).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to find user by ID: %w", err)
+	}
+
+	return &user, nil
+}
+
 // FindAll finds all users
 func (r *UserRepository) FindAll() ([]*entity.User, error) {
 	var users []*entity.User

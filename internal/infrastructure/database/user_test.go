@@ -128,6 +128,46 @@ func TestFindByEmail(t *testing.T) {
 	}
 }
 
+func TestFindByID(t *testing.T) {
+	tests := []struct {
+		name string
+		inputID string
+		wantErr bool
+	}{
+		{
+			name: "success",
+			inputID: "1",
+			wantErr: false,
+		},
+		{
+			name: "not found",
+			inputID: "999",
+			wantErr: false,
+		},
+	}
+
+	for _, test := range tests {
+		// Create transaction
+		tx := testDB.Begin()
+		helper.CreateTestUser(tx, "test", "test@test.com", "password")
+
+		t.Run(test.name, func(t *testing.T) {
+			repo := &UserRepository{DB: tx}
+			user, err := repo.FindByID(test.inputID)
+			if test.wantErr {
+				assert.Error(t, err)
+			} else if user == nil {
+				assert.NoError(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, "test", user.Name)
+				assert.Equal(t, "test@test.com", user.Email)
+			}
+		})
+		tx.Rollback()
+	}
+}
+
 func TestFindAll(t *testing.T) {
 	tests := []struct {
 		name    string
