@@ -110,7 +110,71 @@ func TestCreateUser(t *testing.T) {
 	}
 }
 
-func TestFindUserByEmail(t *testing.T) {
+func TestAuthenticateUser(t *testing.T) {
+	plainPassword := "password"
+	user, _ := entity.NewUser("test", "test@test.com", plainPassword)
+
+	tests := []struct {
+		name       string
+		in         *AuthenticateUserInput
+		mockReturn []interface{}
+		wantErr    bool
+	}{
+		{
+			name: "success",
+			in: &AuthenticateUserInput{
+				Email:    "test@test.com",
+				Password: plainPassword,
+			},
+			mockReturn: []interface{}{
+				user,
+				nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "error when authenticating user",
+			in: &AuthenticateUserInput{
+				Email:    "test@test.com",
+				Password: "invalidPassword",
+			},
+			mockReturn: []interface{}{
+				user,
+				nil,
+			},
+			wantErr: true,
+		},
+		{
+			name: "error when finding user",
+			in: &AuthenticateUserInput{
+				Email:    "test@test.com",
+				Password: plainPassword,
+			},
+			mockReturn: []interface{}{nil, errors.New("error")},
+			wantErr:    true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var mockRepo mockUserRepo
+			mockRepo.On("FindByEmail", mock.Anything).Return(test.mockReturn...)
+
+			u := &UserUseCase{UserRepo: &mockRepo}
+			userResponse, err := u.AuthenticateUser(test.in)
+			if test.wantErr {
+				assert.Error(t, err)
+				assert.Nil(t, userResponse)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, userResponse)
+				assert.Equal(t, test.mockReturn[0].(*entity.User).Name, userResponse.Name)
+			}
+		})
+	}
+}
+
+func TestReadUser(t *testing.T) {
 	tests := []struct {
 		name       string
 		in         string
@@ -119,7 +183,7 @@ func TestFindUserByEmail(t *testing.T) {
 	}{
 		{
 			name: "success",
-			in:   "test@test.com",
+			in:   "1",
 			mockReturn: []interface{}{
 				&entity.User{
 					Name:     "test",
@@ -132,13 +196,13 @@ func TestFindUserByEmail(t *testing.T) {
 		},
 		{
 			name:       "not found",
-			in:         "test@test.com",
+			in:         "1",
 			mockReturn: []interface{}{nil, nil},
-			wantErr:    false,
+			wantErr:    true,
 		},
 		{
 			name:       "error when finding user",
-			in:         "test@test.com",
+			in:         "1",
 			mockReturn: []interface{}{nil, errors.New("error")},
 			wantErr:    true,
 		},
@@ -147,10 +211,10 @@ func TestFindUserByEmail(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			var mockRepo mockUserRepo
-			mockRepo.On("FindByEmail", mock.Anything).Return(test.mockReturn...)
+			mockRepo.On("FindByID", mock.Anything).Return(test.mockReturn...)
 
 			u := &UserUseCase{UserRepo: &mockRepo}
-			userResponse, err := u.FindUserByEmail(test.in)
+			userResponse, err := u.ReadUser(test.in)
 			if test.wantErr {
 				assert.Error(t, err)
 			} else if test.mockReturn[0] == nil {
@@ -164,7 +228,7 @@ func TestFindUserByEmail(t *testing.T) {
 	}
 }
 
-func TestAllUsers(t *testing.T) {
+func TestReadAllUsers(t *testing.T) {
 	tests := []struct {
 		name       string
 		mockReturn []interface{}
@@ -207,7 +271,7 @@ func TestAllUsers(t *testing.T) {
 			mockRepo.On("FindAll").Return(test.mockReturn...)
 
 			u := &UserUseCase{UserRepo: &mockRepo}
-			usersResponse, err := u.FindAllUsers()
+			usersResponse, err := u.ReadAllUsers()
 			if test.wantErr {
 				assert.Error(t, err)
 			} else if test.mockReturn[0] == nil {

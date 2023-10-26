@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"fmt"
+
 	"chatapp/internal/domain/entity"
 	"chatapp/pkg/errors"
 )
@@ -38,6 +40,12 @@ type CreateUserInput struct {
 	Password string
 }
 
+// AuthenticateUserInput is an input for authenticating a user
+type AuthenticateUserInput struct {
+	Email    string
+	Password string
+}
+
 // UpdateUserInput is an input for updating a user
 type UpdateUserInput struct {
 	Name  string
@@ -51,10 +59,9 @@ func NewUserUseCase(repo UserRepository) *UserUseCase {
 
 // Create creates a new user
 func (u *UserUseCase) CreateUser(input *CreateUserInput) (*UserResponse, error) {
-	user := &entity.User{
-		Name:     input.Name,
-		Email:    input.Email,
-		Password: input.Password,
+	user, err := entity.NewUser(input.Name, input.Email, input.Password)
+	if err != nil {
+		return nil, err
 	}
 
 	newUser, err := u.UserRepo.Create(user)
@@ -70,15 +77,39 @@ func (u *UserUseCase) CreateUser(input *CreateUserInput) (*UserResponse, error) 
 	return responseUser, nil
 }
 
-// FindUserByEmail finds a user by email
-func (u *UserUseCase) FindUserByEmail(email string) (*UserResponse, error) {
-	user, err := u.UserRepo.FindByEmail(email)
+// AuthenticateUser authenticates a user
+func (u *UserUseCase) AuthenticateUser(input *AuthenticateUserInput) (*UserResponse, error) {
+	user, err := u.UserRepo.FindByEmail(input.Email)
 	if err != nil {
 		return nil, err
 	}
 
 	if user == nil {
-		return nil, nil
+		entityErr := errors.NewEntityError("user")
+		return nil, entityErr.NotFoundError()
+	}
+
+	if !user.CheckPassword(input.Password) {
+		return nil, fmt.Errorf("invalid password")
+	}
+
+	responseUser := &UserResponse{
+		ID:   user.ID,
+		Name: user.Name,
+	}
+
+	return responseUser, nil
+}
+
+// ReadUser reads a user
+func (u *UserUseCase) ReadUser(userID string) (*UserResponse, error) {
+	user, err := u.UserRepo.FindByID(userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		entityErr := errors.NewEntityError("user")
+		return nil, entityErr.NotFoundError()
 	}
 
 	responseUser := &UserResponse{
@@ -90,7 +121,7 @@ func (u *UserUseCase) FindUserByEmail(email string) (*UserResponse, error) {
 }
 
 // FindAllUsers finds all users
-func (u *UserUseCase) FindAllUsers() (*UsersResponse, error) {
+func (u *UserUseCase) ReadAllUsers() (*UsersResponse, error) {
 	users, err := u.UserRepo.FindAll()
 	if err != nil {
 		return nil, err
