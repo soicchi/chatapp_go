@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"fmt"
+	"log"
 
 	"chatapp/internal/domain/entity"
 	"chatapp/pkg/errors"
@@ -57,16 +58,37 @@ func NewUserUseCase(repo UserRepository) *UserUseCase {
 	return &UserUseCase{UserRepo: repo}
 }
 
+// NewCreateUserInput creates a new input for creating a user
+func NewCreateUserInput(name, email, password string) *CreateUserInput {
+	return &CreateUserInput{
+		Name:     name,
+		Email:    email,
+		Password: password,
+	}
+}
+
+// NewAuthenticateUserInput creates a new input for authenticating a user
+func NewAuthenticateUserInput(email, password string) *AuthenticateUserInput {
+	return &AuthenticateUserInput{
+		Email:    email,
+		Password: password,
+	}
+}
+
 // Create creates a new user
-func (u *UserUseCase) CreateUser(input *CreateUserInput) (*UserResponse, error) {
+func (u *UserUseCase) CreateUser(input *CreateUserInput) (*UserResponse, *errors.CustomError) {
+	log.Println("CreateUser:", input)
+
 	user, err := entity.NewUser(input.Name, input.Email, input.Password)
 	if err != nil {
-		return nil, err
+		log.Println(err)
+		return nil, &errors.CustomError{Type: errors.BadRequest}
 	}
 
 	newUser, err := u.UserRepo.Create(user)
 	if err != nil {
-		return nil, err
+		log.Println(err)
+		return nil, &errors.CustomError{Type: errors.InternalServerError}
 	}
 
 	responseUser := &UserResponse{
@@ -78,19 +100,23 @@ func (u *UserUseCase) CreateUser(input *CreateUserInput) (*UserResponse, error) 
 }
 
 // AuthenticateUser authenticates a user
-func (u *UserUseCase) AuthenticateUser(input *AuthenticateUserInput) (*UserResponse, error) {
+func (u *UserUseCase) AuthenticateUser(input *AuthenticateUserInput) (*UserResponse, *errors.CustomError) {
+	log.Println("AuthenticateUser:", input)
+
 	user, err := u.UserRepo.FindByEmail(input.Email)
 	if err != nil {
-		return nil, err
+		log.Println(err)
+		return nil, &errors.CustomError{Type: errors.InternalServerError}
 	}
 
 	if user == nil {
-		entityErr := errors.NewEntityError("user")
-		return nil, entityErr.NotFoundError()
+		log.Println("user not found")
+		return nil, &errors.CustomError{Type: errors.NotFound, EntityType: "user"}
 	}
 
 	if !user.CheckPassword(input.Password) {
-		return nil, fmt.Errorf("invalid password")
+		log.Println("invalid password")
+		return nil, &errors.CustomError{Type: errors.InvalidCredentials}
 	}
 
 	responseUser := &UserResponse{
@@ -102,14 +128,17 @@ func (u *UserUseCase) AuthenticateUser(input *AuthenticateUserInput) (*UserRespo
 }
 
 // ReadUser reads a user
-func (u *UserUseCase) ReadUser(userID string) (*UserResponse, error) {
+func (u *UserUseCase) ReadUser(userID string) (*UserResponse, *errors.CustomError) {
+	log.Println("ReadUser:", userID)
+
 	user, err := u.UserRepo.FindByID(userID)
 	if err != nil {
-		return nil, err
+		log.Println(err)
+		return nil, &errors.CustomError{Type: errors.InternalServerError}
 	}
+
 	if user == nil {
-		entityErr := errors.NewEntityError("user")
-		return nil, entityErr.NotFoundError()
+		return nil, nil
 	}
 
 	responseUser := &UserResponse{
@@ -121,10 +150,13 @@ func (u *UserUseCase) ReadUser(userID string) (*UserResponse, error) {
 }
 
 // FindAllUsers finds all users
-func (u *UserUseCase) ReadAllUsers() (*UsersResponse, error) {
+func (u *UserUseCase) ReadAllUsers() (*UsersResponse, *errors.CustomError) {
+	log.Println("ReadAllUsers")
+
 	users, err := u.UserRepo.FindAll()
 	if err != nil {
-		return nil, err
+		fmt.Println(err)
+		return nil, &errors.CustomError{Type: errors.InternalServerError}
 	}
 
 	responseUsers := make([]UserResponse, len(users))
@@ -139,38 +171,44 @@ func (u *UserUseCase) ReadAllUsers() (*UsersResponse, error) {
 }
 
 // UpdateUser updates a user
-func (u *UserUseCase) UpdateUser(userID string, input *UpdateUserInput) error {
+func (u *UserUseCase) UpdateUser(userID string, input *UpdateUserInput) *errors.CustomError {
+	log.Println("UpdateUser:", input)
+
 	user, err := u.UserRepo.FindByID(userID)
 	if err != nil {
-		return err
+		log.Println(err)
+		return &errors.CustomError{Type: errors.InternalServerError}
 	}
 	if user == nil {
-		entityErr := errors.NewEntityError("user")
-		return entityErr.NotFoundError()
+		log.Println("user not found")
+		return &errors.CustomError{Type: errors.NotFound, EntityType: "user"}
 	}
 
 	user.Name = input.Name
 	user.Email = input.Email
 	if err := u.UserRepo.Update(user); err != nil {
-		return err
+		log.Println(err)
+		return &errors.CustomError{Type: errors.InternalServerError}
 	}
 
 	return nil
 }
 
 // DeleteUser deletes a user
-func (u *UserUseCase) DeleteUser(userID string) error {
+func (u *UserUseCase) DeleteUser(userID string) *errors.CustomError {
 	user, err := u.UserRepo.FindByID(userID)
 	if err != nil {
-		return err
+		log.Println(err)
+		return &errors.CustomError{Type: errors.InternalServerError}
 	}
 	if user == nil {
-		entityErr := errors.NewEntityError("user")
-		return entityErr.NotFoundError()
+		log.Println("user not found")
+		return &errors.CustomError{Type: errors.NotFound, EntityType: "user"}
 	}
 
 	if err := u.UserRepo.Delete(user); err != nil {
-		return err
+		log.Println(err)
+		return &errors.CustomError{Type: errors.InternalServerError}
 	}
 
 	return nil

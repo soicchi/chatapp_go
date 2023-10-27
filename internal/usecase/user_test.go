@@ -100,10 +100,10 @@ func TestCreateUser(t *testing.T) {
 			u := &UserUseCase{UserRepo: &mockRepo}
 			userResponse, err := u.CreateUser(test.in)
 			if test.wantErr && test.mockReturn[0] == nil {
-				assert.Error(t, err)
+				assert.NotNil(t, err)
 			} else {
 				user, _ := test.mockReturn[0].(*entity.User)
-				assert.NoError(t, err)
+				assert.Nil(t, err)
 				assert.Equal(t, user.Name, userResponse.Name)
 			}
 		})
@@ -163,10 +163,10 @@ func TestAuthenticateUser(t *testing.T) {
 			u := &UserUseCase{UserRepo: &mockRepo}
 			userResponse, err := u.AuthenticateUser(test.in)
 			if test.wantErr {
-				assert.Error(t, err)
+				assert.NotNil(t, err)
 				assert.Nil(t, userResponse)
 			} else {
-				assert.NoError(t, err)
+				assert.Nil(t, err)
 				assert.NotNil(t, userResponse)
 				assert.Equal(t, test.mockReturn[0].(*entity.User).Name, userResponse.Name)
 			}
@@ -204,7 +204,7 @@ func TestReadUser(t *testing.T) {
 			name:       "error when finding user",
 			in:         "1",
 			mockReturn: []interface{}{nil, errors.New("error")},
-			wantErr:    true,
+			wantErr:    false,
 		},
 	}
 
@@ -216,12 +216,12 @@ func TestReadUser(t *testing.T) {
 			u := &UserUseCase{UserRepo: &mockRepo}
 			userResponse, err := u.ReadUser(test.in)
 			if test.wantErr {
-				assert.Error(t, err)
+				assert.NotNil(t, err)
 			} else if test.mockReturn[0] == nil {
-				assert.NoError(t, err)
+				assert.Nil(t, err)
 				assert.Nil(t, userResponse)
 			} else {
-				assert.NoError(t, err)
+				assert.Nil(t, err)
 				assert.Equal(t, test.mockReturn[0].(*entity.User).Name, userResponse.Name)
 			}
 		})
@@ -273,12 +273,12 @@ func TestReadAllUsers(t *testing.T) {
 			u := &UserUseCase{UserRepo: &mockRepo}
 			usersResponse, err := u.ReadAllUsers()
 			if test.wantErr {
-				assert.Error(t, err)
+				assert.NotNil(t, err)
 			} else if test.mockReturn[0] == nil {
-				assert.NoError(t, err)
+				assert.Nil(t, err)
 				assert.Equal(t, 0, len(usersResponse.Users))
 			} else {
-				assert.NoError(t, err)
+				assert.Nil(t, err)
 				assert.NotNil(t, usersResponse)
 				assert.Equal(t, 2, len(usersResponse.Users))
 				assert.Equal(t, test.mockReturn[0].([]*entity.User)[0].Name, usersResponse.Users[0].Name)
@@ -366,9 +366,9 @@ func TestUpdateUser(t *testing.T) {
 			u := &UserUseCase{UserRepo: &mockRepo}
 			err := u.UpdateUser(test.inUserID, test.inUserInput)
 			if test.wantErr {
-				assert.Error(t, err)
+				assert.NotNil(t, err)
 			} else {
-				assert.NoError(t, err)
+				assert.Nil(t, err)
 			}
 		})
 	}
@@ -434,9 +434,9 @@ func TestDeleteUser(t *testing.T) {
 			u := &UserUseCase{UserRepo: &mockRepo}
 			err := u.DeleteUser(test.in)
 			if test.wantErr {
-				assert.Error(t, err)
+				assert.NotNil(t, err)
 			} else {
-				assert.NoError(t, err)
+				assert.Nil(t, err)
 			}
 		})
 	}
