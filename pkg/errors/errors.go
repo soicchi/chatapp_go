@@ -16,7 +16,7 @@ const (
 )
 
 type CustomError struct {
-	Type       CustomErrorType
+	Type CustomErrorType
 }
 
 func NewCustomError(t CustomErrorType) *CustomError {

@@ -116,7 +116,7 @@ func (u *UserUseCase) AuthenticateUser(input *AuthenticateUserInput) (*UserRespo
 
 	if !user.CheckPassword(input.Password) {
 		log.Println("invalid password")
-		return nil, errors.NewCustomError(errors.BadRequest)
+		return nil, errors.NewCustomError(errors.InvalidCredentials)
 	}
 
 	responseUser := &UserResponse{
