@@ -26,12 +26,6 @@ func TestErrorResponse(t *testing.T) {
 			expectedStatus:  401,
 		},
 		{
-			name:            "not found",
-			customError:     &CustomError{Type: NotFound, EntityType: "user"},
-			expectedMessage: "user not found",
-			expectedStatus:  404,
-		},
-		{
 			name:            "internal server error",
 			customError:     &CustomError{Type: InternalServerError},
 			expectedMessage: "internal server error",

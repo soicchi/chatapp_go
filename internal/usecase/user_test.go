@@ -204,7 +204,7 @@ func TestReadUser(t *testing.T) {
 			name:       "error when finding user",
 			in:         "1",
 			mockReturn: []interface{}{nil, errors.New("error")},
-			wantErr:    false,
+			wantErr:    true,
 		},
 	}
 

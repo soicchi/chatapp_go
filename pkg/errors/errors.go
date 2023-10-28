@@ -1,7 +1,6 @@
 package errors
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -18,7 +17,10 @@ const (
 
 type CustomError struct {
 	Type       CustomErrorType
-	EntityType string
+}
+
+func NewCustomError(t CustomErrorType) *CustomError {
+	return &CustomError{Type: t}
 }
 
 func (e *CustomError) ErrorResponse(c echo.Context) error {
@@ -33,7 +35,7 @@ func (e *CustomError) getErrorDetails() (string, int) {
 	case InvalidCredentials:
 		return "invalid credentials", http.StatusUnauthorized
 	case NotFound:
-		return fmt.Sprintf("%s not found", e.EntityType), http.StatusNotFound
+		return "not found", http.StatusNotFound
 	default:
 		return "internal server error", http.StatusInternalServerError
 	}
