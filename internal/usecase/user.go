@@ -81,14 +81,12 @@ func (u *UserUseCase) CreateUser(input *CreateUserInput) (*UserResponse, *errors
 
 	user, err := entity.NewUser(input.Name, input.Email, input.Password)
 	if err != nil {
-		log.Println(err)
-		return nil, errors.NewCustomError(errors.BadRequest)
+		return nil, errors.NewCustomError(errors.BadRequest, err)
 	}
 
 	newUser, err := u.UserRepo.Create(user)
 	if err != nil {
-		log.Println(err)
-		return nil, errors.NewCustomError(errors.InternalServerError)
+		return nil, errors.NewCustomError(errors.InternalServerError, err)
 	}
 
 	responseUser := &UserResponse{
@@ -105,18 +103,15 @@ func (u *UserUseCase) AuthenticateUser(input *AuthenticateUserInput) (*UserRespo
 
 	user, err := u.UserRepo.FindByEmail(input.Email)
 	if err != nil {
-		log.Println(err)
-		return nil, &errors.CustomError{Type: errors.InternalServerError}
+		return nil, errors.NewCustomError(errors.InternalServerError, err)
 	}
 
 	if user == nil {
-		log.Println("user not found")
-		return nil, errors.NewCustomError(errors.NotFound)
+		return nil, errors.NewCustomError(errors.NotFound, fmt.Errorf("user not found"))
 	}
 
 	if !user.CheckPassword(input.Password) {
-		log.Println("invalid password")
-		return nil, errors.NewCustomError(errors.InvalidCredentials)
+		return nil, errors.NewCustomError(errors.InvalidCredentials, fmt.Errorf("invalid credentials"))
 	}
 
 	responseUser := &UserResponse{
@@ -133,13 +128,11 @@ func (u *UserUseCase) ReadUser(userID string) (*UserResponse, *errors.CustomErro
 
 	user, err := u.UserRepo.FindByID(userID)
 	if err != nil {
-		log.Println(err)
-		return nil, errors.NewCustomError(errors.InternalServerError)
+		return nil, errors.NewCustomError(errors.InternalServerError, err)
 	}
 
 	if user == nil {
-		log.Println("user not found")
-		return nil, errors.NewCustomError(errors.NotFound)
+		return nil, errors.NewCustomError(errors.NotFound, err)
 	}
 
 	responseUser := &UserResponse{
@@ -156,8 +149,7 @@ func (u *UserUseCase) ReadAllUsers() (*UsersResponse, *errors.CustomError) {
 
 	users, err := u.UserRepo.FindAll()
 	if err != nil {
-		fmt.Println(err)
-		return nil, errors.NewCustomError(errors.InternalServerError)
+		return nil, errors.NewCustomError(errors.InternalServerError, err)
 	}
 
 	responseUsers := make([]UserResponse, len(users))
@@ -177,19 +169,16 @@ func (u *UserUseCase) UpdateUser(userID string, input *UpdateUserInput) *errors.
 
 	user, err := u.UserRepo.FindByID(userID)
 	if err != nil {
-		log.Println(err)
-		return errors.NewCustomError(errors.InternalServerError)
+		return errors.NewCustomError(errors.InternalServerError, err)
 	}
 	if user == nil {
-		log.Println("user not found")
-		return errors.NewCustomError(errors.NotFound)
+		return errors.NewCustomError(errors.NotFound, fmt.Errorf("user not found"))
 	}
 
 	user.Name = input.Name
 	user.Email = input.Email
 	if err := u.UserRepo.Update(user); err != nil {
-		log.Println(err)
-		return &errors.CustomError{Type: errors.InternalServerError}
+		return errors.NewCustomError(errors.InternalServerError, err)
 	}
 
 	return nil
@@ -199,17 +188,14 @@ func (u *UserUseCase) UpdateUser(userID string, input *UpdateUserInput) *errors.
 func (u *UserUseCase) DeleteUser(userID string) *errors.CustomError {
 	user, err := u.UserRepo.FindByID(userID)
 	if err != nil {
-		log.Println(err)
-		return errors.NewCustomError(errors.InternalServerError)
+		return errors.NewCustomError(errors.InternalServerError, err)
 	}
 	if user == nil {
-		log.Println("user not found")
-		return errors.NewCustomError(errors.NotFound)
+		return errors.NewCustomError(errors.NotFound, fmt.Errorf("user not found"))
 	}
 
 	if err := u.UserRepo.Delete(user); err != nil {
-		log.Println(err)
-		return errors.NewCustomError(errors.InternalServerError)
+		return errors.NewCustomError(errors.InternalServerError, err)
 	}
 
 	return nil

@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,19 +16,19 @@ func TestErrorResponse(t *testing.T) {
 	}{
 		{
 			name:            "bad request",
-			customError:     &CustomError{Type: BadRequest},
+			customError:     &CustomError{Type: BadRequest, Error: errors.New("errors")},
 			expectedMessage: "invalid request",
 			expectedStatus:  400,
 		},
 		{
 			name:            "invalid credentials",
-			customError:     &CustomError{Type: InvalidCredentials},
+			customError:     &CustomError{Type: InvalidCredentials, Error: errors.New("errors")},
 			expectedMessage: "invalid credentials",
 			expectedStatus:  401,
 		},
 		{
 			name:            "internal server error",
-			customError:     &CustomError{Type: InternalServerError},
+			customError:     &CustomError{Type: InternalServerError, Error: errors.New("errors")},
 			expectedMessage: "internal server error",
 			expectedStatus:  500,
 		},

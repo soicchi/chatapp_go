@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -15,6 +16,11 @@ const (
 	InternalServerError
 )
 
+type CustomError struct {
+	Type  CustomErrorType
+	Error error
+}
+
 var errorDetails = map[CustomErrorType]struct {
 	Message string
 	Status  int
@@ -25,15 +31,15 @@ var errorDetails = map[CustomErrorType]struct {
 	InternalServerError: {Message: "internal server error", Status: http.StatusInternalServerError},
 }
 
-type CustomError struct {
-	Type CustomErrorType
-}
-
-func NewCustomError(t CustomErrorType) *CustomError {
-	return &CustomError{Type: t}
+func NewCustomError(t CustomErrorType, err error) *CustomError {
+	return &CustomError{
+		Type:  t,
+		Error: err,
+	}
 }
 
 func (e *CustomError) ErrorResponse(c echo.Context) error {
+	log.Println(e.Error)
 	message, status := e.getErrorDetails()
 	return c.JSON(status, responseData(message, status))
 }
