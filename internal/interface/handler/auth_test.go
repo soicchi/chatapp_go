@@ -65,7 +65,7 @@ func TestSignUp(t *testing.T) {
 		},
 		{
 			name:           "invalid request for binding error",
-			input:          `{"name": "test", "email": "test@test.com, "password": }`,
+			input:          `{"name": "test", "email": "test@test.com", "password": }`,
 			expectedStatus: http.StatusBadRequest,
 			mockReturn:     []interface{}{nil, nil},
 		},
