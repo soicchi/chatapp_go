@@ -19,7 +19,7 @@ func main() {
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_NAME"),
 		os.Getenv("DB_PORT"),
-		os.Getenv("DB_SSL_MODE"),
+		os.Getenv("DB_SSLMODE"),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -41,5 +41,5 @@ func main() {
 	handlers := router.InitRouter(db)
 	handlers.SetUpRouter(e)
 
-	e.Logger.Fatal(e.Start(":" + os.Getenv("API_PORT")))
+	e.Logger.Fatal(e.Start(":" + os.Getenv("APP_PORT")))
 }
