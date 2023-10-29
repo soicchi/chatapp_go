@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"chatapp/internal/domain/entity"
 	"chatapp/internal/infrastructure/database"
 	"chatapp/internal/interface/router"
 
@@ -12,7 +13,7 @@ import (
 
 func main() {
 	// Create a new database connection
-	dbConfig := database.NewPostgresConfig(
+	dbConfig, err := database.NewPostgresConfig(
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
@@ -20,7 +21,7 @@ func main() {
 		os.Getenv("DB_PORT"),
 		os.Getenv("DB_SSL_MODE"),
 	)
-	if err := dbConfig.Validate(); err != nil {
+	if err != nil {
 		log.Fatal(err)
 	}
 
@@ -32,7 +33,7 @@ func main() {
 	log.Println("Successfully connected to database:", db.Name())
 
 	// Migrate the database
-	database.Migrate(db)
+	database.Migrate(db, &entity.User{})
 	log.Println("Successfully migrated database")
 
 	// Set up router
@@ -40,5 +41,5 @@ func main() {
 	handlers := router.InitRouter(db)
 	handlers.SetUpRouter(e)
 
-	e.Logger.Fatal(e.Start(":3000"))
+	e.Logger.Fatal(e.Start(":" + os.Getenv("API_PORT")))
 }

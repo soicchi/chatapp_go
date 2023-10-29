@@ -3,8 +3,6 @@ package database
 import (
 	"fmt"
 
-	"chatapp/internal/domain/entity"
-
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -18,7 +16,21 @@ type PostgresConfig struct {
 	SSLMode  string
 }
 
-func NewPostgresConfig(host, user, password, dbName, port, sslMode string) *PostgresConfig {
+func NewPostgresConfig(host, user, password, dbName, port, sslMode string) (*PostgresConfig, error) {
+	configFields := map[string]string{
+		"host":     host,
+		"user":     user,
+		"password": password,
+		"dbname":   dbName,
+		"port":     port,
+		"sslmode":  sslMode,
+	}
+	for fieldName, fieldValue := range configFields {
+		if fieldValue == "" {
+			return nil, fmt.Errorf("postgres %s cannot be empty", fieldName)
+		}
+	}
+
 	return &PostgresConfig{
 		Host:     host,
 		User:     user,
@@ -26,7 +38,7 @@ func NewPostgresConfig(host, user, password, dbName, port, sslMode string) *Post
 		DBName:   dbName,
 		Port:     port,
 		SSLMode:  sslMode,
-	}
+	}, nil
 }
 
 // NewPostgresDB creates a new postgres database connection
@@ -47,31 +59,6 @@ func (c *PostgresConfig) NewDSN() string {
 	)
 }
 
-func (c *PostgresConfig) Validate() error {
-	if c.Host == "" {
-		return fmt.Errorf("postgres host cannot be empty")
-	}
-	if c.User == "" {
-		return fmt.Errorf("postgres user cannot be empty")
-	}
-	if c.Password == "" {
-		return fmt.Errorf("postgres password cannot be empty")
-	}
-	if c.DBName == "" {
-		return fmt.Errorf("postgres dbname cannot be empty")
-	}
-	if c.Port == "" {
-		return fmt.Errorf("postgres port cannot be empty")
-	}
-	if c.SSLMode == "" {
-		return fmt.Errorf("postgres sslmode cannot be empty")
-	}
-
-	return nil
-}
-
-func Migrate(db *gorm.DB) error {
-	return db.AutoMigrate(
-		&entity.User{},
-	)
+func Migrate(db *gorm.DB, entities ...interface{}) error {
+	return db.AutoMigrate(entities...)
 }

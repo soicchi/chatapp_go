@@ -13,7 +13,7 @@ var testDB *gorm.DB
 
 func TestMain(m *testing.M) {
 	// Setup test database
-	dbConfig := NewPostgresConfig(
+	dbConfig, err := NewPostgresConfig(
 		os.Getenv("TEST_DB_HOST"),
 		os.Getenv("TEST_DB_USER"),
 		os.Getenv("TEST_DB_PASSWORD"),
@@ -21,8 +21,11 @@ func TestMain(m *testing.M) {
 		os.Getenv("TEST_DB_PORT"),
 		os.Getenv("TEST_DB_SSLMODE"),
 	)
+	if err != nil {
+		panic(err)
+	}
+
 	testDSN := dbConfig.NewDSN()
-	var err error
 	testDB, err = NewPostgresDB(testDSN)
 	if err != nil {
 		panic(err)
