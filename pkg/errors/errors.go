@@ -15,6 +15,16 @@ const (
 	InternalServerError
 )
 
+var errorDetails = map[CustomErrorType]struct {
+	Message string
+	Status  int
+}{
+	BadRequest:          {Message: "invalid request", Status: http.StatusBadRequest},
+	InvalidCredentials:  {Message: "invalid credentials", Status: http.StatusUnauthorized},
+	NotFound:            {Message: "resource not found", Status: http.StatusNotFound},
+	InternalServerError: {Message: "internal server error", Status: http.StatusInternalServerError},
+}
+
 type CustomError struct {
 	Type CustomErrorType
 }
@@ -29,16 +39,12 @@ func (e *CustomError) ErrorResponse(c echo.Context) error {
 }
 
 func (e *CustomError) getErrorDetails() (string, int) {
-	switch e.Type {
-	case BadRequest:
-		return "invalid request", http.StatusBadRequest
-	case InvalidCredentials:
-		return "invalid credentials", http.StatusUnauthorized
-	case NotFound:
-		return "not found", http.StatusNotFound
-	default:
-		return "internal server error", http.StatusInternalServerError
+	detail, ok := errorDetails[e.Type]
+	if !ok {
+		return "unknown error", http.StatusInternalServerError
 	}
+
+	return detail.Message, detail.Status
 }
 
 func responseData(message string, status int) map[string]interface{} {
