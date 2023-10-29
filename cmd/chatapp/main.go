@@ -37,7 +37,8 @@ func main() {
 
 	// Set up router
 	e := echo.New()
-	router.InitRouter(e, db)
+	handlers := router.InitRouter(db)
+	handlers.SetUpRouter(e)
 
 	e.Logger.Fatal(e.Start(":3000"))
 }

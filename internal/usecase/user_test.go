@@ -105,6 +105,7 @@ func TestCreateUser(t *testing.T) {
 				user, _ := test.mockReturn[0].(*entity.User)
 				assert.Nil(t, err)
 				assert.Equal(t, user.Name, userResponse.Name)
+				mockRepo.AssertExpectations(t)
 			}
 		})
 	}
@@ -169,6 +170,7 @@ func TestAuthenticateUser(t *testing.T) {
 				assert.Nil(t, err)
 				assert.NotNil(t, userResponse)
 				assert.Equal(t, test.mockReturn[0].(*entity.User).Name, userResponse.Name)
+				mockRepo.AssertExpectations(t)
 			}
 		})
 	}
@@ -223,6 +225,7 @@ func TestReadUser(t *testing.T) {
 			} else {
 				assert.Nil(t, err)
 				assert.Equal(t, test.mockReturn[0].(*entity.User).Name, userResponse.Name)
+				mockRepo.AssertExpectations(t)
 			}
 		})
 	}
@@ -283,6 +286,7 @@ func TestReadAllUsers(t *testing.T) {
 				assert.Equal(t, 2, len(usersResponse.Users))
 				assert.Equal(t, test.mockReturn[0].([]*entity.User)[0].Name, usersResponse.Users[0].Name)
 				assert.Equal(t, test.mockReturn[0].([]*entity.User)[1].Name, usersResponse.Users[1].Name)
+				mockRepo.AssertExpectations(t)
 			}
 		})
 	}
@@ -291,18 +295,17 @@ func TestReadAllUsers(t *testing.T) {
 func TestUpdateUser(t *testing.T) {
 	tests := []struct {
 		name             string
-		inUserID         string
 		inUserInput      *UpdateUserInput
 		findMockReturn   []interface{}
 		updateMockReturn error
 		wantErr          bool
 	}{
 		{
-			name:     "success",
-			inUserID: "1",
+			name: "success",
 			inUserInput: &UpdateUserInput{
-				Name:  "test",
-				Email: "update@test.com",
+				UserID: "1",
+				Name:   "test",
+				Email:  "update@test.com",
 			},
 			findMockReturn: []interface{}{
 				&entity.User{
@@ -316,33 +319,33 @@ func TestUpdateUser(t *testing.T) {
 			wantErr:          false,
 		},
 		{
-			name:     "error when finding user",
-			inUserID: "1",
+			name: "error when finding user",
 			inUserInput: &UpdateUserInput{
-				Name:  "test",
-				Email: "update@test.com",
+				UserID: "1",
+				Name:   "test",
+				Email:  "update@test.com",
 			},
 			findMockReturn:   []interface{}{nil, nil},
 			updateMockReturn: errors.New("error"),
 			wantErr:          true,
 		},
 		{
-			name:     "error when user not found",
-			inUserID: "1",
+			name: "error when user not found",
 			inUserInput: &UpdateUserInput{
-				Name:  "test",
-				Email: "test@test.com",
+				UserID: "1",
+				Name:   "test",
+				Email:  "test@test.com",
 			},
 			findMockReturn:   []interface{}{nil, nil},
 			updateMockReturn: nil,
 			wantErr:          true,
 		},
 		{
-			name:     "error when updating user",
-			inUserID: "1",
+			name: "error when updating user",
 			inUserInput: &UpdateUserInput{
-				Name:  "test",
-				Email: "update@test.com",
+				UserID: "1",
+				Name:   "test",
+				Email:  "update@test.com",
 			},
 			findMockReturn: []interface{}{
 				&entity.User{
@@ -360,21 +363,22 @@ func TestUpdateUser(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			var mockRepo mockUserRepo
-			mockRepo.On("FindByID", test.inUserID).Return(test.findMockReturn...)
+			mockRepo.On("FindByID", test.inUserInput.UserID).Return(test.findMockReturn...)
 			mockRepo.On("Update", mock.Anything).Return(test.updateMockReturn)
 
 			u := &UserUseCase{UserRepo: &mockRepo}
-			err := u.UpdateUser(test.inUserID, test.inUserInput)
+			err := u.UpdateUser(test.inUserInput)
 			if test.wantErr {
 				assert.NotNil(t, err)
 			} else {
 				assert.Nil(t, err)
+				mockRepo.AssertExpectations(t)
 			}
 		})
 	}
 }
 
-func TestDeleteUser(t *testing.T) {
+func TestDestroyUser(t *testing.T) {
 	tests := []struct {
 		name             string
 		in               string
@@ -432,11 +436,12 @@ func TestDeleteUser(t *testing.T) {
 			mockRepo.On("Delete", mock.Anything).Return(test.deleteMockReturn)
 
 			u := &UserUseCase{UserRepo: &mockRepo}
-			err := u.DeleteUser(test.in)
+			err := u.DestroyUser(test.in)
 			if test.wantErr {
 				assert.NotNil(t, err)
 			} else {
 				assert.Nil(t, err)
+				mockRepo.AssertExpectations(t)
 			}
 		})
 	}

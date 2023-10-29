@@ -14,11 +14,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockAuthService struct {
+type MockAuthUseCase struct {
 	mock.Mock
 }
 
-func (m *MockAuthService) CreateUser(input *usecase.CreateUserInput) (*usecase.UserResponse, *errors.CustomError) {
+func (m *MockAuthUseCase) CreateUser(input *usecase.CreateUserInput) (*usecase.UserResponse, *errors.CustomError) {
 	args := m.Called(input)
 	if args.Get(0) == nil {
 		return nil, args.Get(1).(*errors.CustomError)
@@ -31,7 +31,7 @@ func (m *MockAuthService) CreateUser(input *usecase.CreateUserInput) (*usecase.U
 	return args.Get(0).(*usecase.UserResponse), args.Get(1).(*errors.CustomError)
 }
 
-func (m *MockAuthService) AuthenticateUser(input *usecase.AuthenticateUserInput) (*usecase.UserResponse, *errors.CustomError) {
+func (m *MockAuthUseCase) AuthenticateUser(input *usecase.AuthenticateUserInput) (*usecase.UserResponse, *errors.CustomError) {
 	args := m.Called(input)
 	if args.Get(0) == nil {
 		return nil, args.Get(1).(*errors.CustomError)
@@ -91,8 +91,8 @@ func TestSignUp(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			var mockAuthService MockAuthService
-			mockAuthService.On("CreateUser", mock.Anything).Return(test.mockReturn...)
+			var mockAuthUseCase MockAuthUseCase
+			mockAuthUseCase.On("CreateUser", mock.Anything).Return(test.mockReturn...)
 
 			e := echo.New()
 			req := httptest.NewRequest(http.MethodPost, "/signup", strings.NewReader(test.input))
@@ -100,7 +100,7 @@ func TestSignUp(t *testing.T) {
 			rec := httptest.NewRecorder()
 			c := e.NewContext(req, rec)
 
-			authHandler := &AuthHandler{AuthService: &mockAuthService}
+			authHandler := &AuthHandler{AuthUseCase: &mockAuthUseCase}
 			authHandler.SignUp(c)
 			assert.Equal(t, test.expectedStatus, rec.Code)
 		})
@@ -154,8 +154,8 @@ func TestSignIn(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			var mockAuthService MockAuthService
-			mockAuthService.On("AuthenticateUser", mock.Anything).Return(test.mockReturn...)
+			var mockAuthUseCase MockAuthUseCase
+			mockAuthUseCase.On("AuthenticateUser", mock.Anything).Return(test.mockReturn...)
 
 			e := echo.New()
 			req := httptest.NewRequest(http.MethodPost, "/signin", strings.NewReader(test.input))
@@ -163,7 +163,7 @@ func TestSignIn(t *testing.T) {
 			rec := httptest.NewRecorder()
 			c := e.NewContext(req, rec)
 
-			authHandler := &AuthHandler{AuthService: &mockAuthService}
+			authHandler := &AuthHandler{AuthUseCase: &mockAuthUseCase}
 			authHandler.SignIn(c)
 			assert.Equal(t, test.expectedStatus, rec.Code)
 		})

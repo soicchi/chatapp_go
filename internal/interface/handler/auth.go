@@ -10,13 +10,13 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type AuthService interface {
+type AuthUseCase interface {
 	CreateUser(input *usecase.CreateUserInput) (*usecase.UserResponse, *errors.CustomError)
 	AuthenticateUser(input *usecase.AuthenticateUserInput) (*usecase.UserResponse, *errors.CustomError)
 }
 
 type AuthHandler struct {
-	AuthService AuthService
+	AuthUseCase AuthUseCase
 }
 
 type SignUpInput struct {
@@ -30,9 +30,9 @@ type SignInInput struct {
 	Password string `json:"password"`
 }
 
-func NewAuthHandler(authService AuthService) *AuthHandler {
+func NewAuthHandler(authUseCase AuthUseCase) *AuthHandler {
 	return &AuthHandler{
-		AuthService: authService,
+		AuthUseCase: authUseCase,
 	}
 }
 
@@ -43,7 +43,7 @@ func (h *AuthHandler) SignUp(c echo.Context) error {
 	}
 
 	inputToUsecase := usecase.NewCreateUserInput(input.Name, input.Email, input.Password)
-	user, err := h.AuthService.CreateUser(inputToUsecase)
+	user, err := h.AuthUseCase.CreateUser(inputToUsecase)
 	if err != nil {
 		return err.ErrorResponse(c)
 	}
@@ -58,7 +58,7 @@ func (h *AuthHandler) SignIn(c echo.Context) error {
 	}
 
 	inputToUsecase := usecase.NewAuthenticateUserInput(input.Email, input.Password)
-	user, err := h.AuthService.AuthenticateUser(inputToUsecase)
+	user, err := h.AuthUseCase.AuthenticateUser(inputToUsecase)
 	if err != nil {
 		return err.ErrorResponse(c)
 	}

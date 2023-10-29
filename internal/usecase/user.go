@@ -49,8 +49,9 @@ type AuthenticateUserInput struct {
 
 // UpdateUserInput is an input for updating a user
 type UpdateUserInput struct {
-	Name  string
-	Email string
+	UserID string
+	Name   string
+	Email  string
 }
 
 // NewUserUseCase creates a new user use case
@@ -72,6 +73,14 @@ func NewAuthenticateUserInput(email, password string) *AuthenticateUserInput {
 	return &AuthenticateUserInput{
 		Email:    email,
 		Password: password,
+	}
+}
+
+func NewUpdateUserInput(userID, name, email string) *UpdateUserInput {
+	return &UpdateUserInput{
+		UserID: userID,
+		Name:   name,
+		Email:  email,
 	}
 }
 
@@ -164,10 +173,10 @@ func (u *UserUseCase) ReadAllUsers() (*UsersResponse, *errors.CustomError) {
 }
 
 // UpdateUser updates a user
-func (u *UserUseCase) UpdateUser(userID string, input *UpdateUserInput) *errors.CustomError {
+func (u *UserUseCase) UpdateUser(input *UpdateUserInput) *errors.CustomError {
 	log.Println("UpdateUser:", input)
 
-	user, err := u.UserRepo.FindByID(userID)
+	user, err := u.UserRepo.FindByID(input.UserID)
 	if err != nil {
 		return errors.NewCustomError(errors.InternalServerError, err)
 	}
@@ -184,8 +193,8 @@ func (u *UserUseCase) UpdateUser(userID string, input *UpdateUserInput) *errors.
 	return nil
 }
 
-// DeleteUser deletes a user
-func (u *UserUseCase) DeleteUser(userID string) *errors.CustomError {
+// DestroyUser deletes a user
+func (u *UserUseCase) DestroyUser(userID string) *errors.CustomError {
 	user, err := u.UserRepo.FindByID(userID)
 	if err != nil {
 		return errors.NewCustomError(errors.InternalServerError, err)
